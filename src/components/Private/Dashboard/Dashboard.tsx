@@ -1,14 +1,9 @@
 import { useDashboard } from "../../../api/hooks/hooks";
-import Loader from "../../Comman/Loader/Loader";
 import toast from "react-hot-toast";
 
 const Dashboard = () => {
-    const { data, isLoading, error } = useDashboard();
+    const { data, error } = useDashboard();
     console.log('data', data)
-
-    if (isLoading) {
-        return <Loader />;
-    }
 
     if (error) {
         toast.error("Error loading dashboard");
