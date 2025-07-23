@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 
 const AuthGaurd = () => {
   const user = useSelector((state: any) => state?.user?.user);
-  if(!user){
+  if(user){
     return <Navigate to="/" />
   }
     return(
