@@ -4,17 +4,19 @@ import { persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import persistStore from "redux-persist/es/persistStore";
 import { loaderSlice } from "./Slice/loaderSlice";
+import { themeSlice } from "./Slice/themeSlice";
 
 
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["user","loader"],
+  whitelist: ["user","loader","theme"],
 };
 
 const rootReducer = combineReducers({
   user: userSlice.reducer,
-  loader:loaderSlice.reducer
+  loader:loaderSlice.reducer,
+  theme:themeSlice.reducer
 });
 export const store = configureStore({
   devTools: false,

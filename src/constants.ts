@@ -1,5 +1,7 @@
 // API Endpoints
-export const BASE_URL = 'http://localhost:3000';
+
+const env = import.meta.env;
+export const BASE_URL = env.VITE_BASE_URL;
 export const API_ENDPOINTS = {
     LOGIN: '/login',
     SIGNUP: '/signup',
