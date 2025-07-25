@@ -8,6 +8,7 @@ import CommanButton from "../../Comman/CommanButton/CommanButton";
 import Header from "../../Private/comman/Header/Header";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
+import styles from "./Login.module.scss"
 
 
 const Login = () => {
@@ -33,15 +34,21 @@ const Login = () => {
   return (
     <>
     <Header currentPage="login" />
-    <div>
-      <form onSubmit={LoginForm.handleSubmit(onSubmit)}>
+    <div className={styles.loginContainer}>
+      <div className={styles.loginContainer__header}>
+        <h1 className={styles.loginContainer__header__title}>Login</h1>
+        <p className={styles.loginContainer__header__subtitle}>Welcome back! Please enter your details.</p>
+      </div>
+      <form className={styles.form} onSubmit={LoginForm.handleSubmit(onSubmit)}>
         <InputCustom
           type="email"
+          className={styles.loginContainer__form__field__input}
           {...LoginForm.register("email")}
           placeholder="Email"
         />
         <InputCustom
           type="password"
+          className={styles.loginContainer__form__field__input}
           {...LoginForm.register("password")}
           placeholder="Password"
         />

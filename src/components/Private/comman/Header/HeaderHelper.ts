@@ -1,7 +1,7 @@
 export const withoutAuth = [
     {
       key: "landing",
-      label: "Landing",
+      label: "Home",
       showOn: ["login", "signup"],
       to: "/",
     },

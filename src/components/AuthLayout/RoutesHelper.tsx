@@ -5,6 +5,8 @@ import Login from "../Public/Login/Login";
 import SignUp from "../Public/SignUp/SignUp";
 import ForgetPassword from "../Public/ForgetPassword/ForgetPassword";
 import LandingPage from "../Public/LandingPage/LandingPage";
+import Settings from "../Private/Settings/Settings";
+import ChangePassword from "../Private/ChangePassword/ChangePassword";
 
 export const PrivatesRoutes = [
     {
@@ -16,6 +18,16 @@ export const PrivatesRoutes = [
       path: "profile",
       element: <Profile />,
       label: "Profile",
+    },
+    {
+      path: "settings",
+      element: <Settings />,
+      label: "Settings",
+    },  
+    {
+      path: "change-password",
+      element: <ChangePassword />,
+      label: "Change Password",
     },
   ];
   export const PublicRoutes: any = [

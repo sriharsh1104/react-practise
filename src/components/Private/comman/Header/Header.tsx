@@ -5,6 +5,9 @@ import CommanButton from "../../../Comman/CommanButton/CommanButton";
 import { useNavigate } from "react-router";
 import { setUser } from "../../../../Redux/Slice/userSlice";
 import { withoutAuth } from "./HeaderHelper";
+import styles from "./header.module.scss";
+import { PrivatesRoutes } from "../../../AuthLayout/RoutesHelper";
+
 interface HeaderProps {
   currentPage?: "landing" | "login" | "signup";
 }
@@ -19,48 +22,62 @@ const Header: React.FC<HeaderProps> = ({ currentPage }) => {
     dispatch(toggleTheme());
   };
 
-  const handleNavigate = (to: string) => {
-    navigate(to);
+  const handleNavigation = (path: string) => {
+    navigate(path);
   };
 
-  const handleSignOut = () => {
-    dispatch(setUser(""));
+  const userMenuOptions = [
+    { value: "profile", label: "Profile", onClick: () => handleNavigation(PrivatesRoutes.find((route) => route.path === "profile")?.path || "") },
+    { value: "settings", label: "Settings", onClick: () => handleNavigation(PrivatesRoutes.find((route) => route.path === "settings")?.path || "") },
+    { value: "change-password", label: "Change Password", onClick: () => handleNavigation(PrivatesRoutes.find((route) => route.path === "change-password")?.path || "") },
+    { value: "logout", label: "Logout", onClick: () => {
+      dispatch(setUser(""));
+      handleNavigation("/");
+    }},
+  ];
 
-    navigate("/");
-  };
+  const authButtons = withoutAuth.filter((btn) => 
+    btn.showOn.includes(currentPage || "landing")
+  );
 
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "1rem",
-      }}
-    >
-      <div>Header</div>
-      <CommanButton onClick={handleToggleTheme} variant="outline">
-        {theme === "light" ? "🌞 Light" : "🌙 Dark"}
-      </CommanButton>
-      {user ? (
-        <CommanButton onClick={handleSignOut} variant="outline">
-          Sign Out
+    <div className={styles.header}>
+      <div className={styles["header__title"]}>Header</div>
+      <div className={styles["header__actions"]}>
+        <CommanButton onClick={handleToggleTheme} variant="outline">
+          {theme === "light" ? "🌞 Light" : "🌙 Dark"}
         </CommanButton>
-      ) : (
-        <>
-          {withoutAuth
-            .filter((btn) => btn.showOn.includes(currentPage || "landing"))
-            .map((btn) => (
+        {user ? (
+          <div className={styles["header__user-menu"]}>
+            <CommanButton variant="outline">
+              {user.label}
+            </CommanButton>
+            <div className={styles["header__dropdown"]}>
+              {userMenuOptions?.map((option) => (
+                <button
+                  key={option.value}
+                  className={styles["header__dropdown-item"]}
+                  onClick={option.onClick}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <>
+            {authButtons.map((btn) => (
               <CommanButton
                 key={btn.key}
-                onClick={() => handleNavigate(btn.to)}
+                onClick={() => handleNavigation(btn.to)}
                 variant="outline"
               >
                 {btn.label}
               </CommanButton>
             ))}
-        </>
-      )}
+          </>
+        )}
+      </div>
     </div>
   );
 };

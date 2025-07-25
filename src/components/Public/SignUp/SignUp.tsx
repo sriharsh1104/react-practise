@@ -6,6 +6,7 @@ import InputCustom from "../../Comman/InputCustom/inputCustom";
 import CommanPhoneInput from "../../Comman/CommanPhoneInput/CommanPhoneInput";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
+import styles from "./SignUp.module.scss";
 
 const SignUp = () => {
   const schema = yup.object().shape({
@@ -30,48 +31,63 @@ const SignUp = () => {
     },
   });
 
-  
-  const { mutate: signup, isPending } = useSignup();
+  const { mutate: signup } = useSignup();
   const onSubmit = (data: any) => {
     signup(data);
   };
   return (
     <>
       <Header currentPage="signup" />
-      <form onSubmit={signUpForm.handleSubmit(onSubmit)}>
-        <InputCustom
-          type="text"
-          placeholder="Name"
-          {...signUpForm.register("name")}
-        />
-        <InputCustom
-          type="email"
-          placeholder="Email"
-          {...signUpForm.register("email")}
-        />
-        <InputCustom
-          type="password"
-          placeholder="Password"
-          {...signUpForm.register("password")}
-        />
-        <InputCustom
-          type="password"
-          placeholder="Confirm Password"
-          {...signUpForm.register("confirmPassword")}
-        />
-        <CommanPhoneInput
-          // type="text"
-          placeholder="Phone"
-          {...signUpForm.register("phone")}
-        />
-        <InputCustom
-          type="text"
-          value="user"
-          placeholder="Role"
-          {...signUpForm.register("role")}
-        />
-        <CommanButton type="submit">SignUp</CommanButton>
-      </form>
+      <div className={styles.signupContainer}>
+        <div className={styles.signupContainer__header}>
+          <h1 className={styles.signupContainer__header__title}>SignUp</h1>
+          <p className={styles.signupContainer__header__subtitle}>
+            Welcome to our platform! Please enter your details.
+          </p>
+        </div>
+        <form
+          className={styles.form}
+          onSubmit={signUpForm.handleSubmit(onSubmit)}
+        >
+          <InputCustom
+            type="text"
+            placeholder="Name"
+            className={styles.signupContainer__form__field__input}
+            {...signUpForm.register("name")}
+          />
+          <InputCustom
+            type="email"
+            placeholder="Email"
+            className={styles.signupContainer__form__field__input}
+            {...signUpForm.register("email")}
+          />
+          <InputCustom
+            type="password"
+            placeholder="Password"
+            className={styles.signupContainer__form__field__input}
+            {...signUpForm.register("password")}
+          />
+          <InputCustom
+            type="password"
+            placeholder="Confirm Password"
+            className={styles.signupContainer__form__field__input}
+            {...signUpForm.register("confirmPassword")}
+          />
+          <CommanPhoneInput
+            className={styles.signupContainer__form__field__input}
+            placeholder="Phone"
+            {...signUpForm.register("phone")}
+          />
+          <InputCustom
+            type="text"
+            value="user"
+            placeholder="Role"
+            className={styles.signupContainer__form__field__input}
+            {...signUpForm.register("role")}
+          />
+          <CommanButton type="submit">SignUp</CommanButton>
+        </form>
+      </div>
     </>
   );
 };

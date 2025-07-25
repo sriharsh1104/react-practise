@@ -1,4 +1,5 @@
 import React, { forwardRef } from 'react';
+import styles from './input.module.scss';
 
 interface InputCustomProps {
   type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url';
@@ -13,11 +14,16 @@ interface InputCustomProps {
   required?: boolean;
   className?: string;
   error?: string;
+  success?: string;
   label?: string;
   autoComplete?: string;
   maxLength?: number;
   minLength?: number;
   pattern?: string;
+  size?: 'sm' | 'md' | 'lg';
+  variant?: 'default' | 'floating-label' | 'compact';
+  icon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
 }
 
 const InputCustom = forwardRef<HTMLInputElement, InputCustomProps>(
@@ -35,25 +41,50 @@ const InputCustom = forwardRef<HTMLInputElement, InputCustomProps>(
       required = false,
       className = '',
       error,
+      success,
       label,
       autoComplete,
       maxLength,
       minLength,
       pattern,
+      size = 'md',
+      variant = 'default',
+      icon,
+      rightIcon,
     },
     ref
   ) => {
+    // Build container classes
+    const containerClasses = [
+      styles['input-container'],
+      styles[`size-${size}`],
+      variant !== 'default' && styles[variant],
+      icon && styles['has-icon'],
+      rightIcon && styles['has-right-icon'],
+      className
+    ].filter(Boolean).join(' ');
+
+    // Build input classes
+    const inputClasses = [
+      styles['input-field'],
+      error && styles.error,
+      success && styles.success
+    ].filter(Boolean).join(' ');
+
     return (
-      <div className="w-full">
-        {label && (
+      <div className={containerClasses}>
+        {label && variant !== 'floating-label' && (
           <label 
             htmlFor={id || name} 
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className={styles['input-label']}
           >
             {label}
-            {required && <span className="text-red-500 ml-1">*</span>}
+            {required && <span className={styles['required-indicator']}>*</span>}
           </label>
         )}
+        
+        {icon && <span className={styles['input-icon']}>{icon}</span>}
+        
         <input
           ref={ref}
           type={type}
@@ -70,16 +101,27 @@ const InputCustom = forwardRef<HTMLInputElement, InputCustomProps>(
           maxLength={maxLength}
           minLength={minLength}
           pattern={pattern}
-          className={`
-            w-full px-3 py-2 border rounded-md shadow-sm
-            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-            disabled:bg-gray-100 disabled:cursor-not-allowed
-            ${error ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300'}
-            ${className}
-          `.trim()}
+          className={inputClasses}
         />
+        
+        {variant === 'floating-label' && label && (
+          <label 
+            htmlFor={id || name} 
+            className={styles['input-label']}
+          >
+            {label}
+            {required && <span className={styles['required-indicator']}>*</span>}
+          </label>
+        )}
+        
+        {rightIcon && <span className={styles['input-icon-right']}>{rightIcon}</span>}
+        
         {error && (
-          <p className="mt-1 text-sm text-red-600">{error}</p>
+          <p className={styles['error-message']}>{error}</p>
+        )}
+        
+        {success && !error && (
+          <p className={styles['success-message']}>{success}</p>
         )}
       </div>
     );

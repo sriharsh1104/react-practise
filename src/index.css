@@ -8,7 +8,9 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
+body {
+  padding-top: 72px; /* Header ki height + kuch margin (adjust as needed) */
+}
 a {
   font-weight: 500;
   color: #646cff;
@@ -53,10 +55,70 @@ button:focus-visible {
 [data-theme="light"] {
   color: #213547;
   background-color: #ffffff;
+  --header-bg: #fff;
+  --header-text: #213547;
+  --header-border: #e0e0e0;
+  --sidebar-bg: #fff;
+  --sidebar-text: #213547;
+  --sidebar-border: #e0e0e0;
+  --sidebar-hover-bg: rgba(0, 0, 0, 0.05);
+  --sidebar-active-bg: rgba(0, 0, 0, 0.1);
+  --content-bg: #fafafa;
+  --content-text: #213547;
+  --component-bg: #fff;
+  --component-title: #213547;
+  --card-bg: #fff;
+  --card-border: #e0e0e0;
+  --card-title: #213547;
+  --card-text: #213547;
+  --form-label: #374151;
+  --form-border: #d1d5db;
+  --form-bg: #fff;
+  --form-text: #213547;
+  --form-focus: #3b82f6;
+  --btn-primary-bg: #3b82f6;
+  --btn-primary-text: #fff;
+  --btn-primary-hover: #2563eb;
+  --btn-secondary-bg: #6b7280;
+  --btn-secondary-text: #fff;
+  --btn-secondary-hover: #4b5563;
+  --btn-outline-border: #d1d5db;
+  --btn-outline-text: #374151;
+  --btn-outline-hover: #f3f4f6;
 }
 [data-theme="dark"] {
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
+  --header-bg: #222;
+  --header-text: #fff;
+  --header-border: #333;
+  --sidebar-bg: #222;
+  --sidebar-text: #fff;
+  --sidebar-border: #333;
+  --sidebar-hover-bg: rgba(255, 255, 255, 0.1);
+  --sidebar-active-bg: rgba(255, 255, 255, 0.2);
+  --content-bg: #1a1a1a;
+  --content-text: rgba(255, 255, 255, 0.87);
+  --component-bg: #2a2a2a;
+  --component-title: #fff;
+  --card-bg: #2a2a2a;
+  --card-border: #404040;
+  --card-title: #fff;
+  --card-text: rgba(255, 255, 255, 0.87);
+  --form-label: #d1d5db;
+  --form-border: #404040;
+  --form-bg: #2a2a2a;
+  --form-text: rgba(255, 255, 255, 0.87);
+  --form-focus: #3b82f6;
+  --btn-primary-bg: #3b82f6;
+  --btn-primary-text: #fff;
+  --btn-primary-hover: #2563eb;
+  --btn-secondary-bg: #6b7280;
+  --btn-secondary-text: #fff;
+  --btn-secondary-hover: #4b5563;
+  --btn-outline-border: #404040;
+  --btn-outline-text: rgba(255, 255, 255, 0.87);
+  --btn-outline-hover: #333;
 }
 
 [data-theme="light"] a:hover {

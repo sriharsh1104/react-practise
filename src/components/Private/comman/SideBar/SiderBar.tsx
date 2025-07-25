@@ -1,21 +1,44 @@
 import { NavLink, useNavigate } from "react-router";
+import { useDispatch } from "react-redux";
+import { setUser } from "../../../../Redux/Slice/userSlice";
 import CommanButton from "../../../Comman/CommanButton/CommanButton";
 import { withAuth } from "./SideBarHelper";
+import styles from "./sideBar.module.scss";
 
 export const SiderBar = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   
   const handleSignOut = () => {
+    dispatch(setUser(""));
     navigate("/login");
   };
+
   return (
-    
-    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+    <div className={styles.sideBar}>
+      <div className={styles.sideBar__nav}>
+        {withAuth?.map((item) => (
+          <NavLink 
+            key={item.key} 
+            to={item.to}
+            className={({ isActive }) => 
+              `${styles.sideBar__navItem} ${isActive ? styles.sideBar__navItemActive : ''}`
+            }
+          >
+            {item.label}
+          </NavLink>
+        ))}
+      </div>
       
-      {withAuth?.map((item) => (
-        <div key={item.key}> <NavLink to={item.to}>{item.label}</NavLink></div>
-      ))}
-      <CommanButton onClick={() => handleSignOut}>Logout</CommanButton>
+      <div className={styles.sideBar__footer}>
+        <CommanButton 
+          onClick={handleSignOut}
+          variant="outline"
+          fullWidth
+        >
+          Logout
+        </CommanButton>
+      </div>
     </div>
   );
 };
