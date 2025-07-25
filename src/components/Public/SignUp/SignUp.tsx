@@ -52,29 +52,24 @@ const SignUp = () => {
           <InputCustom
             type="text"
             placeholder="Name"
-            className={styles.signupContainer__form__field__input}
             {...signUpForm.register("name")}
           />
           <InputCustom
             type="email"
             placeholder="Email"
-            className={styles.signupContainer__form__field__input}
             {...signUpForm.register("email")}
           />
           <InputCustom
             type="password"
             placeholder="Password"
-            className={styles.signupContainer__form__field__input}
             {...signUpForm.register("password")}
           />
           <InputCustom
             type="password"
             placeholder="Confirm Password"
-            className={styles.signupContainer__form__field__input}
             {...signUpForm.register("confirmPassword")}
           />
           <CommanPhoneInput
-            className={styles.signupContainer__form__field__input}
             placeholder="Phone"
             {...signUpForm.register("phone")}
           />
@@ -82,7 +77,6 @@ const SignUp = () => {
             type="text"
             value="user"
             placeholder="Role"
-            className={styles.signupContainer__form__field__input}
             {...signUpForm.register("role")}
           />
           <CommanButton type="submit">SignUp</CommanButton>

@@ -42,13 +42,13 @@ const Login = () => {
       <form className={styles.form} onSubmit={LoginForm.handleSubmit(onSubmit)}>
         <InputCustom
           type="email"
-          className={styles.loginContainer__form__field__input}
+          // className={styles.loginContainer__form__field__input}
           {...LoginForm.register("email")}
           placeholder="Email"
         />
         <InputCustom
           type="password"
-          className={styles.loginContainer__form__field__input}
+          // className={styles.loginContainer__form__field__input}
           {...LoginForm.register("password")}
           placeholder="Password"
         />
