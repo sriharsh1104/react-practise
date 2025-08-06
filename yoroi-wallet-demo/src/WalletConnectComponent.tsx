@@ -7,9 +7,59 @@ declare global {
       yoroi?: {
         enable(network?: string): Promise<any>;
       };
+      eternl?: {
+        enable(network?: string): Promise<any>;
+      };
+      nami?: {
+        enable(network?: string): Promise<any>;
+      };
+      flint?: {
+        enable(network?: string): Promise<any>;
+      };
     };
   }
 }
+
+// CP113 Protocol Information
+const CP113_FEATURES = {
+  protocolVersion: '8.0.0',
+  features: [
+    'Reference Inputs',
+    'Inline Datums', 
+    'Reference Scripts',
+    'Collateral Outputs',
+    'Enhanced Transaction Structure'
+  ],
+  description: 'Cardano Protocol 113 introduces advanced transaction capabilities including reference inputs, inline datums, and reference scripts for improved efficiency and functionality.'
+};
+
+// Wallet Support Matrix
+const WALLET_SUPPORT = {
+  eternl: {
+    name: 'Eternl (CCVault)',
+    cp113Support: 'FULL',
+    features: ['Reference Inputs', 'Inline Datums', 'Reference Scripts', 'Advanced Transaction Builder'],
+    recommended: true
+  },
+  flint: {
+    name: 'Flint',
+    cp113Support: 'GOOD',
+    features: ['Reference Inputs', 'Inline Datums', 'Basic Reference Scripts'],
+    recommended: true
+  },
+  nami: {
+    name: 'Nami',
+    cp113Support: 'PARTIAL',
+    features: ['Basic Reference Inputs', 'Limited Inline Datums'],
+    recommended: false
+  },
+  yoroi: {
+    name: 'Yoroi',
+    cp113Support: 'LIMITED',
+    features: ['Protocol Detection', 'Basic Transactions'],
+    recommended: false
+  }
+};
 
 const WalletConnectComponent = () => {
   const [connected, setConnected] = useState(false);
@@ -17,6 +67,7 @@ const WalletConnectComponent = () => {
   const [loading, setLoading] = useState(false);
   const [network, setNetwork] = useState('preprod'); // Default to preprod for testing
   const [wallet, setWallet] = useState<any>(null);
+  const [selectedWallet, setSelectedWallet] = useState<string>('');
   
   // Transaction states
   const [showSendForm, setShowSendForm] = useState(false);
@@ -24,22 +75,86 @@ const WalletConnectComponent = () => {
   const [amount, setAmount] = useState('');
   const [sending, setSending] = useState(false);
   const [utxos, setUtxos] = useState<any[]>([]);
+  
+  // CP113 specific states
+  const [protocolVersion, setProtocolVersion] = useState<string>('');
+  const [showCP113Info, setShowCP113Info] = useState(false);
+  const [useReferenceInputs, setUseReferenceInputs] = useState(false);
+  const [inlineDatum, setInlineDatum] = useState('');
+  const [referenceScript, setReferenceScript] = useState('');
+  const [showAdvancedCP113, setShowAdvancedCP113] = useState(false);
+  const [availableWallets, setAvailableWallets] = useState<string[]>([]);
 
-  const handleConnect = async () => {
+  // Detect Available Wallets
+  const detectAvailableWallets = () => {
+    const wallets: string[] = [];
+    if (typeof window !== 'undefined' && window.cardano) {
+      if (window.cardano.eternl) wallets.push('eternl');
+      if (window.cardano.flint) wallets.push('flint');
+      if (window.cardano.nami) wallets.push('nami');
+      if (window.cardano.yoroi) wallets.push('yoroi');
+    }
+    setAvailableWallets(wallets);
+    console.log('🔍 Available wallets:', wallets);
+    return wallets;
+  };
+
+  // CP113 Protocol Detection
+  const detectProtocolVersion = async (walletInstance: any) => {
+    try {
+      console.log('🔍 Detecting Cardano protocol version...');
+      
+      // Try to get protocol parameters
+      if (walletInstance.getProtocolParameters) {
+        const params = await walletInstance.getProtocolParameters();
+        console.log('📋 Protocol parameters:', params);
+        
+        if (params && params.protocolVersion) {
+          const version = params.protocolVersion;
+          setProtocolVersion(version);
+          console.log('✅ Protocol version detected:', version);
+          
+          // Check if CP113 is supported (protocol version >= 8.0.0)
+          const [major, minor] = version.split('.').map(Number);
+          const supportsCP113 = major >= 8;
+          
+          if (supportsCP113) {
+            console.log('✅ CP113 features are supported!');
+            alert('🎉 CP113 (Cardano Protocol 113) is supported!\n\nFeatures available:\n• Reference Inputs\n• Inline Datums\n• Reference Scripts\n• Collateral Outputs');
+          } else {
+            console.log('⚠️ CP113 features not supported in this protocol version');
+            alert('⚠️ CP113 features not available in protocol version ' + version);
+          }
+        }
+      } else {
+        console.log('⚠️ Protocol parameters not available');
+        setProtocolVersion('Unknown');
+      }
+    } catch (error) {
+      console.error('❌ Error detecting protocol version:', error);
+      setProtocolVersion('Error');
+    }
+  };
+
+  const connectWallet = async (walletType: string = 'eternl') => {
     try {
       setLoading(true);
-      console.log('🔄 Starting Yoroi connection...');
+      console.log(`🔄 Starting ${walletType} connection...`);
       console.log('🌐 Network:', network);
       
-      if (typeof window !== 'undefined' && window.cardano && window.cardano.yoroi) {
-        console.log('✅ Yoroi extension found');
+      // Detect available wallets first
+      const available = detectAvailableWallets();
+      
+      if (typeof window !== 'undefined' && window.cardano && (window.cardano as any)[walletType]) {
+        console.log(`✅ ${walletType} extension found`);
         
-        const walletInstance = await window.cardano.yoroi.enable(network);
+        const walletInstance = await (window.cardano as any)[walletType].enable(network);
         console.log('🔗 Wallet enabled for network:', network);
         console.log('🔗 Wallet object:', walletInstance);
         console.log('🔗 Wallet methods available:', Object.keys(walletInstance));
         
         setWallet(walletInstance);
+        setSelectedWallet(walletType);
         
         // Try different methods to get address
         let selectedAddress = '';
@@ -97,16 +212,19 @@ const WalletConnectComponent = () => {
           
           // Get UTXOs after connection
           await getWalletUTXOs(walletInstance);
+          
+          // Detect protocol version and CP113 support
+          await detectProtocolVersion(walletInstance);
         } else {
           console.log('⚠️ No addresses found with any method');
           alert('Connected but could not find any addresses. Check console for details.');
         }
         
         setConnected(true);
-        console.log('✅ Yoroi wallet connected successfully!');
+        console.log(`✅ ${walletType} wallet connected successfully!`);
       } else {
-        console.log('❌ Yoroi extension not found');
-        alert('Yoroi extension not found. Please install Yoroi extension first.');
+        console.log(`❌ ${walletType} extension not found`);
+        alert(`${walletType} extension not found. Please install ${walletType} extension first.`);
       }
     } catch (error: any) {
       console.error('❌ Connection error:', error);
@@ -149,6 +267,116 @@ const WalletConnectComponent = () => {
     setShowSendForm(false);
     setUtxos([]);
     console.log('✅ Wallet disconnected');
+  };
+
+  // CP113 Enhanced Transaction Function
+  const handleCP113Transaction = async () => {
+    if (!wallet || !recipientAddress || !amount) {
+      alert('Please fill all fields and ensure wallet is connected');
+      return;
+    }
+
+    if (utxos.length === 0) {
+      alert('No test ADA available! Get test ADA from faucet first.');
+      return;
+    }
+
+    try {
+      setSending(true);
+      console.log('🚀 Starting CP113-enhanced transaction...');
+      console.log('📤 From:', address);
+      console.log('📥 To:', recipientAddress);
+      console.log('💰 Amount:', amount, 'ADA');
+      console.log('🔗 Using Reference Inputs:', useReferenceInputs);
+      console.log('📝 Inline Datum:', inlineDatum);
+      console.log('📜 Reference Script:', referenceScript);
+
+      // Convert ADA to Lovelace
+      const amountInLovelace = parseFloat(amount) * 1000000;
+      
+      // Calculate total available balance
+      let totalBalance = 0;
+      utxos.forEach(utxo => {
+        if (utxo.amount && utxo.amount.lovelace) {
+          totalBalance += parseInt(utxo.amount.lovelace);
+        }
+      });
+
+      const estimatedFee = 200000;
+      const changeAmount = totalBalance - amountInLovelace - estimatedFee;
+
+      if (changeAmount < 0) {
+        throw new Error(`Insufficient balance. Need ${amountInLovelace + estimatedFee} lovelace, but have ${totalBalance} lovelace`);
+      }
+
+      // Get change address
+      const changeAddress = await wallet.getChangeAddress();
+
+      // Create CP113-enhanced transaction structure
+      const transaction: any = {
+        inputs: utxos.slice(0, 1),
+        outputs: [
+          {
+            address: recipientAddress,
+            amount: {
+              lovelace: amountInLovelace.toString()
+            }
+          },
+          {
+            address: changeAddress,
+            amount: {
+              lovelace: changeAmount.toString()
+            }
+          }
+        ]
+      };
+
+      // Add CP113 features if enabled
+      if (useReferenceInputs && utxos.length > 1) {
+        transaction.referenceInputs = [utxos[1]]; // Use second UTXO as reference
+        console.log('🔗 Added reference input');
+      }
+
+      if (inlineDatum) {
+        transaction.outputs[0].datum = {
+          inline: inlineDatum
+        };
+        console.log('📝 Added inline datum');
+      }
+
+      if (referenceScript) {
+        transaction.referenceScripts = [referenceScript];
+        console.log('📜 Added reference script');
+      }
+
+      console.log('📝 CP113 Transaction object:', transaction);
+
+      // Sign and submit transaction
+      const signedTx = await wallet.signTx(transaction, true);
+      const txHash = await wallet.submitTx(signedTx);
+
+      console.log('✅ CP113 transaction submitted! Hash:', txHash);
+      alert(`CP113 Transaction successful!\n\nHash: ${txHash}\nSent: ${amount} ADA\nFeatures used: ${[
+        useReferenceInputs ? 'Reference Inputs' : '',
+        inlineDatum ? 'Inline Datum' : '',
+        referenceScript ? 'Reference Script' : ''
+      ].filter(Boolean).join(', ') || 'Standard Transaction'}`);
+
+      // Reset form
+      setRecipientAddress('');
+      setAmount('');
+      setInlineDatum('');
+      setReferenceScript('');
+      setUseReferenceInputs(false);
+      setShowSendForm(false);
+      await getWalletUTXOs(wallet);
+
+    } catch (error: any) {
+      console.error('❌ CP113 Transaction error:', error);
+      alert('CP113 Transaction failed: ' + (error?.message || error));
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleSendTransaction = async () => {
@@ -271,16 +499,44 @@ const WalletConnectComponent = () => {
       </div>
       
       {!connected ? (
-        <button 
-          onClick={handleConnect} 
-          disabled={loading}
-          style={{ padding: '10px 20px', fontSize: '16px' }}
-        >
-          {loading ? 'Connecting...' : `Connect Yoroi (${network})`}
-        </button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
+          <button 
+            onClick={() => connectWallet('eternl')} 
+            disabled={loading}
+            style={{ padding: '10px 20px', fontSize: '16px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px' }}
+          >
+            {loading ? 'Connecting...' : `Connect Eternl (${network}) - RECOMMENDED`}
+          </button>
+          
+          <button 
+            onClick={() => connectWallet('flint')} 
+            disabled={loading}
+            style={{ padding: '10px 20px', fontSize: '16px', backgroundColor: '#2196F3', color: 'white', border: 'none', borderRadius: '4px' }}
+          >
+            {loading ? 'Connecting...' : `Connect Flint (${network})`}
+          </button>
+          
+          <button 
+            onClick={() => connectWallet('yoroi')} 
+            disabled={loading}
+            style={{ padding: '10px 20px', fontSize: '16px', backgroundColor: '#FF9800', color: 'white', border: 'none', borderRadius: '4px' }}
+          >
+            {loading ? 'Connecting...' : `Connect Yoroi (${network}) - LIMITED CP113`}
+          </button>
+        </div>
       ) : (
         <div style={{ textAlign: 'center', maxWidth: '500px' }}>
-          <p>✅ Connected to Yoroi ({network})</p>
+          <p>✅ Connected to {WALLET_SUPPORT[selectedWallet as keyof typeof WALLET_SUPPORT]?.name || selectedWallet} ({network})</p>
+          {selectedWallet && (
+            <div style={{ marginBottom: 10, padding: '8px', backgroundColor: '#f0f0f0', borderRadius: '4px' }}>
+              <p style={{ fontSize: '12px', margin: 0 }}>
+                <strong>CP113 Support:</strong> {WALLET_SUPPORT[selectedWallet as keyof typeof WALLET_SUPPORT]?.cp113Support}
+              </p>
+              <p style={{ fontSize: '11px', margin: 0, color: '#666' }}>
+                Features: {WALLET_SUPPORT[selectedWallet as keyof typeof WALLET_SUPPORT]?.features.join(', ')}
+              </p>
+            </div>
+          )}
           {address && (
             <div style={{ marginBottom: 20 }}>
               <p>Your Address: {address.slice(0, 10)}...{address.slice(-10)}</p>
@@ -288,6 +544,32 @@ const WalletConnectComponent = () => {
             </div>
           )}
           
+          {/* Protocol Version & CP113 Status */}
+          <div style={{ marginBottom: 20, padding: '10px', border: '1px solid #ccc', borderRadius: '4px' }}>
+            <p><strong>Protocol Version:</strong> {protocolVersion || 'Detecting...'}</p>
+            {protocolVersion && protocolVersion !== 'Unknown' && protocolVersion !== 'Error' && (
+              <div>
+                <button 
+                  onClick={() => setShowCP113Info(!showCP113Info)}
+                  style={{ padding: '5px 10px', fontSize: '12px', marginBottom: 10 }}
+                >
+                  {showCP113Info ? 'Hide' : 'Show'} CP113 Features
+                </button>
+                {showCP113Info && (
+                  <div style={{ fontSize: '12px', textAlign: 'left' }}>
+                    <p><strong>CP113 Features:</strong></p>
+                    <ul style={{ margin: '5px 0', paddingLeft: '20px' }}>
+                      {CP113_FEATURES.features.map((feature, index) => (
+                        <li key={index}>{feature}</li>
+                      ))}
+                    </ul>
+                    <p style={{ fontSize: '11px', color: '#666' }}>{CP113_FEATURES.description}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* UTXO Status */}
           <div style={{ marginBottom: 20, padding: '10px', border: '1px solid #ccc', borderRadius: '4px' }}>
             <p><strong>Test ADA Status:</strong></p>
@@ -332,13 +614,69 @@ const WalletConnectComponent = () => {
                   style={{ width: '100%', padding: '8px', marginTop: '5px' }}
                 />
               </div>
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+
+              {/* CP113 Advanced Options */}
+              {protocolVersion && protocolVersion !== 'Unknown' && protocolVersion !== 'Error' && (
+                <div style={{ marginBottom: 10, padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}>
+                  <button 
+                    onClick={() => setShowAdvancedCP113(!showAdvancedCP113)}
+                    style={{ padding: '5px 10px', fontSize: '12px', marginBottom: 10 }}
+                  >
+                    {showAdvancedCP113 ? 'Hide' : 'Show'} CP113 Advanced Options
+                  </button>
+                  
+                  {showAdvancedCP113 && (
+                    <div style={{ fontSize: '12px' }}>
+                      <div style={{ marginBottom: '10px' }}>
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={useReferenceInputs}
+                            onChange={(e) => setUseReferenceInputs(e.target.checked)}
+                            style={{ marginRight: '5px' }}
+                          />
+                          Use Reference Inputs (CP113)
+                        </label>
+                      </div>
+                      <div style={{ marginBottom: '10px' }}>
+                        <label>Inline Datum (CP113):</label>
+                        <input
+                          type="text"
+                          value={inlineDatum}
+                          onChange={(e) => setInlineDatum(e.target.value)}
+                          placeholder="Optional datum data"
+                          style={{ width: '100%', padding: '5px', marginTop: '2px', fontSize: '11px' }}
+                        />
+                      </div>
+                      <div style={{ marginBottom: '10px' }}>
+                        <label>Reference Script (CP113):</label>
+                        <input
+                          type="text"
+                          value={referenceScript}
+                          onChange={(e) => setReferenceScript(e.target.value)}
+                          placeholder="Optional script reference"
+                          style={{ width: '100%', padding: '5px', marginTop: '2px', fontSize: '11px' }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <button 
+                  onClick={handleCP113Transaction}
+                  disabled={sending || !recipientAddress || !amount || utxos.length === 0}
+                  style={{ padding: '10px 20px', backgroundColor: '#2196F3', color: 'white', border: 'none', borderRadius: '4px' }}
+                >
+                  {sending ? 'Sending...' : 'Send CP113 Transaction'}
+                </button>
                 <button 
                   onClick={handleSendTransaction}
                   disabled={sending || !recipientAddress || !amount || utxos.length === 0}
                   style={{ padding: '10px 20px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px' }}
                 >
-                  {sending ? 'Sending...' : 'Send Transaction'}
+                  {sending ? 'Sending...' : 'Send Standard Transaction'}
                 </button>
                 <button 
                   onClick={() => setShowSendForm(false)}
@@ -361,7 +699,7 @@ const WalletConnectComponent = () => {
                 marginBottom: 10 
               }}
             >
-              {utxos.length > 0 ? 'Send Transaction' : 'No Test ADA Available'}
+              {utxos.length > 0 ? 'Send Transaction (CP113 Ready)' : 'No Test ADA Available'}
             </button>
           )}
           
